@@ -893,11 +893,11 @@ namespace Microsoft.Unity.VisualStudio.Editor
 		/// </summary>
 		private string GetProjectEntriesText(IEnumerable<SolutionProjectEntry> entries)
 		{
-			var projectEntries = entries.Select(entry => string.Format(
-				m_SolutionProjectEntryTemplate,
-				entry.ProjectFactoryGuid, entry.Name, entry.FileName, entry.ProjectGuid, entry.Metadata
-			));
-
+            var projectEntries = entries.Select(entry =>
+                {
+                    var isPlayerProject = entry.FileName.Contains(".Player.csproj");
+                    return string.Format(m_SolutionProjectEntryTemplate, entry.ProjectFactoryGuid, isPlayerProject ? entry.Name + ".Player" : entry.Name, entry.FileName, entry.ProjectGuid, entry.Metadata);
+                });
 			return string.Join(k_WindowsNewline, projectEntries.ToArray());
 		}
 
