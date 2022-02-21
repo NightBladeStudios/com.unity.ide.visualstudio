@@ -112,6 +112,8 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			};
 
 			GUILayout.Label($"<size=10><color=grey>{package.displayName} v{package.version} enabled</color></size>", style);
+			GUILayout.Label($"<size=10><color=grey>with Baal Fix</color></size>", style);
+
 			GUILayout.EndHorizontal();
 
 			EditorGUILayout.LabelField("Generate .csproj files for:");
@@ -124,9 +126,43 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			SettingsButton(ProjectGenerationFlag.LocalTarBall, "Local tarball", "");
 			SettingsButton(ProjectGenerationFlag.Unknown, "Packages from unknown sources", "");
 			SettingsButton(ProjectGenerationFlag.PlayerAssemblies, "Player projects", "For each player project generate an additional csproj with the name 'project-player.csproj'");
+			DrawCustomSupportList();
 			RegenerateProjectFiles();
 			EditorGUI.indentLevel--;
 		}
+        	void DrawCustomSupportList()
+        {
+			EditorGUI.indentLevel++;
+
+            var pl = new System.Collections.Generic.List<(string platformName, string directive)>();
+            var elements = EditorPrefs.GetString("VSEEAdditionalPlatforms", "XBOXONE:ASD;PS4:BDS").Split(';');
+
+            foreach (var element in elements)
+            {
+                var platform = element.Split(':');
+				pl.Add((platform[0],platform[1]));
+            }
+
+            for (var index = 0; index < pl.Count; index++)
+            { 
+                var valueTuple = pl[index];
+                EditorGUILayout.BeginHorizontal();
+                pl[index] = (EditorGUILayout.TextField(valueTuple.platformName), EditorGUILayout.TextField(valueTuple.directive));
+                EditorGUILayout.EndHorizontal();
+            }
+
+
+            var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(new GUILayoutOption[] { }));
+            rect.width = 252;
+            if (GUI.Button(rect, "Add new Platform"))
+            {
+                pl.Add(("newPlatform","unity_newPlatform"));
+            }
+
+            EditorPrefs.SetString("VSEEAdditionalPlatforms", string.Join(';', pl.Select(tuple => string.Join(':', tuple.platformName, tuple.directive))));
+			EditorGUI.indentLevel--;
+
+        }
 
 		void RegenerateProjectFiles()
 		{

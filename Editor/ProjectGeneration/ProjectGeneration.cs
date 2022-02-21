@@ -708,6 +708,45 @@ namespace Microsoft.Unity.VisualStudio.Editor
 				$@"    <WarningLevel>4</WarningLevel>",
 				$@"    <NoWarn>0169</NoWarn>",
 				$@"    <AllowUnsafeBlocks>{properties.Unsafe}</AllowUnsafeBlocks>",
+				$@"  </PropertyGroup>",
+				loadSavedPlatforms()
+			};
+			
+			string loadSavedPlatforms()
+            {
+                var s = string.Empty;
+                var elements = EditorPrefs.GetString("VSEEAdditionalPlatforms", "Windows:UNITY_STANDALONE_WIN;").Split(';');
+
+                foreach (var element in elements)
+                {
+                    var platform = element.Split(':');
+                    s = string.Join(k_WindowsNewline,s,string.Join(k_WindowsNewline,extendedPlatformSupport(platform[0], platform[1])));
+                }
+				UnityEngine.Debug.Log(s);
+
+                return s;
+            }
+			string[] extendedPlatformSupport(string platform,string directive) => new[]
+			{
+				$@"  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|{platform}' "">",
+				$@"    <DebugSymbols>true</DebugSymbols>",
+				$@"    <DebugType>full</DebugType>",
+				$@"    <Optimize>false</Optimize>",
+				$@"    <OutputPath>{properties.OutputPath}</OutputPath>",
+				$@"    <DefineConstants>{directive}</DefineConstants>",
+				$@"    <ErrorReport>prompt</ErrorReport>",
+				$@"    <WarningLevel>4</WarningLevel>",
+				$@"    <NoWarn>0169</NoWarn>",
+				$@"    <AllowUnsafeBlocks>{properties.Unsafe}</AllowUnsafeBlocks>",
+				$@"  </PropertyGroup>",
+				$@"  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|{platform}' "">",
+				$@"    <DebugType>pdbonly</DebugType>",
+				$@"    <Optimize>true</Optimize>",
+				$@"    <OutputPath>Temp\bin\Release\</OutputPath>",
+				$@"    <ErrorReport>prompt</ErrorReport>",
+				$@"    <WarningLevel>4</WarningLevel>",
+				$@"    <NoWarn>0169</NoWarn>",
+				$@"    <AllowUnsafeBlocks>{properties.Unsafe}</AllowUnsafeBlocks>",
 				$@"  </PropertyGroup>"
 			};
 
@@ -782,6 +821,28 @@ namespace Microsoft.Unity.VisualStudio.Editor
 
 		private static string GetSolutionText()
 		{
+			string[] extendedPlatformSupport(string platform) => new []
+            {
+                @$"        Debug|{platform} = Debug|{platform}", 
+                @$"        Release|{platform} = Release|{platform}",
+            };
+
+
+			string loadSavedPlatforms()
+            {
+                var s = string.Empty;
+                var elements = EditorPrefs.GetString("VSEEAdditionalPlatforms", "Windows:UNITY_STANDALONE_WIN;").Split(';');
+
+                foreach (var element in elements)
+                {
+                    var platform = element.Split(':');
+                    s = string.Join(k_WindowsNewline,s,string.Join(k_WindowsNewline,extendedPlatformSupport(platform[0])));
+                }
+				UnityEngine.Debug.Log(s);
+                return s;
+            }
+
+
 			return string.Join(k_WindowsNewline,
 			@"",
 			@"Microsoft Visual Studio Solution File, Format Version {0}",
@@ -791,7 +852,8 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			@"    GlobalSection(SolutionConfigurationPlatforms) = preSolution",
 			@"        Debug|Any CPU = Debug|Any CPU",
 			@"        Release|Any CPU = Release|Any CPU",
-			@"    EndGlobalSection",
+			loadSavedPlatforms(),
+            @"    EndGlobalSection",
 			@"    GlobalSection(ProjectConfigurationPlatforms) = postSolution",
 			@"{3}",
 			@"    EndGlobalSection",
