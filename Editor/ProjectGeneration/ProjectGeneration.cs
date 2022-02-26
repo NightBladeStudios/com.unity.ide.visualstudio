@@ -709,20 +709,23 @@ namespace Microsoft.Unity.VisualStudio.Editor
 				$@"    <NoWarn>0169</NoWarn>",
 				$@"    <AllowUnsafeBlocks>{properties.Unsafe}</AllowUnsafeBlocks>",
 				$@"  </PropertyGroup>",
-				loadSavedPlatforms()
+				loadSavedPlatforms(properties.Defines)
 			};
 			
-			string loadSavedPlatforms()
+			string loadSavedPlatforms(string[] inputDirectives)
             {
                 var s = string.Empty;
-                var elements = EditorPrefs.GetString("VSEEAdditionalPlatforms", "Windows:UNITY_STANDALONE_WIN;").Split(';');
+                var elements = EditorPrefs.GetString("VSEEAdditionalPlatforms", "Windows:UNITY_STANDALONE_WIN").Split('/');
+				UnityEngine.Debug.Log(elements.Count());
 
                 foreach (var element in elements)
                 {
+					if(string.IsNullOrEmpty(element))continue;
+
                     var platform = element.Split(':');
-                    s = string.Join(k_WindowsNewline,s,string.Join(k_WindowsNewline,extendedPlatformSupport(platform[0], platform[1])));
+                    s = string.Join(k_WindowsNewline,s,string.Join(k_WindowsNewline,extendedPlatformSupport(platform[0], string.Join(';',platform[1],string.Join(';',inputDirectives)))));
                 }
-				UnityEngine.Debug.Log(s);
+				UnityEngine.Debug.Log(s); 
 
                 return s;
             }
@@ -831,10 +834,12 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			string loadSavedPlatforms()
             {
                 var s = string.Empty;
-                var elements = EditorPrefs.GetString("VSEEAdditionalPlatforms", "Windows:UNITY_STANDALONE_WIN;").Split(';');
+                var elements = EditorPrefs.GetString("VSEEAdditionalPlatforms", "Windows:UNITY_STANDALONE_WIN").Split('/');
 
                 foreach (var element in elements)
                 {
+					if(string.IsNullOrEmpty(element))continue;
+
                     var platform = element.Split(':');
                     s = string.Join(k_WindowsNewline,s,string.Join(k_WindowsNewline,extendedPlatformSupport(platform[0])));
                 }
@@ -862,10 +867,11 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			@"").Replace("    ", "\t");
 		}
 
+
 		private void SyncSolution(IEnumerable<Assembly> assemblies)
 		{
 			if (InvalidCharactersRegexPattern.IsMatch(ProjectDirectory))
-				Debug.LogWarning("Project path contains special characters, which can be an issue when opening Visual Studio");
+				UnityEngine.Debug.LogWarning("Project path contains special characters, which can be an issue when opening Visual Studio");
 
 			var solutionFile = SolutionFile();
 			var previousSolution = m_FileIOProvider.Exists(solutionFile) ? SolutionParser.ParseSolutionFile(solutionFile, m_FileIOProvider) : null;

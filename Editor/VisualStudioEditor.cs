@@ -112,7 +112,6 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			};
 
 			GUILayout.Label($"<size=10><color=grey>{package.displayName} v{package.version} enabled</color></size>", style);
-			GUILayout.Label($"<size=10><color=grey>with Baal Fix</color></size>", style);
 
 			GUILayout.EndHorizontal();
 
@@ -135,10 +134,12 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			EditorGUI.indentLevel++;
 
             var pl = new System.Collections.Generic.List<(string platformName, string directive)>();
-            var elements = EditorPrefs.GetString("VSEEAdditionalPlatforms", "XBOXONE:ASD;PS4:BDS").Split(';');
+			//EditorPrefs.DeleteKey("VSEEAdditionalPlatforms");
+            var elements = EditorPrefs.GetString("VSEEAdditionalPlatforms", "Windows:UNITY_STANDALONE_WIN").Split('/');  
 
             foreach (var element in elements)
             {
+				if(string.IsNullOrEmpty(element))continue;
                 var platform = element.Split(':');
 				pl.Add((platform[0],platform[1]));
             }
@@ -159,7 +160,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
                 pl.Add(("newPlatform","unity_newPlatform"));
             }
 
-            EditorPrefs.SetString("VSEEAdditionalPlatforms", string.Join(';', pl.Select(tuple => string.Join(':', tuple.platformName, tuple.directive))));
+            EditorPrefs.SetString("VSEEAdditionalPlatforms", string.Join('/', pl.Select(tuple => string.Join(':', tuple.platformName, tuple.directive))));
 			EditorGUI.indentLevel--;
 
         }
